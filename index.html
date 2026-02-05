@@ -2,24 +2,20 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Hand 3D Control</title>
+<title>Camera test</title>
 <style>
 body{
-margin:0;
-overflow:hidden;
 background:black;
-}
-canvas{
-position:absolute;
-top:0;
-left:0;
+margin:0;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 video{
-position:fixed;
-right:10px;
-bottom:10px;
-width:160px;
-border-radius:15px;
+width:90%;
+max-width:500px;
+border-radius:20px;
 }
 </style>
 </head>
@@ -27,89 +23,21 @@ border-radius:15px;
 <body>
 
 <video id="video" autoplay playsinline></video>
-<canvas id="canvas"></canvas>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <script>
 const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
-// camera
-navigator.mediaDevices.getUserMedia({video:true})
+navigator.mediaDevices.getUserMedia({
+video:true,
+audio:false
+})
 .then(stream=>{
 video.srcObject = stream;
 })
 .catch(err=>{
-alert("Camera ruxsat berilmadi!");
+alert("Camera ishlamadi: " + err);
+console.log(err);
 });
-
-// particles
-let particles=[];
-for(let i=0;i<800;i++){
-particles.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-});
-}
-
-let hx=canvas.width/2;
-let hy=canvas.height/2;
-
-function draw(){
-ctx.fillStyle="black";
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-particles.forEach(p=>{
-p.x += (hx-canvas.width/2)*0.002;
-p.y += (hy-canvas.height/2)*0.002;
-
-ctx.beginPath();
-ctx.fillStyle="cyan";
-ctx.arc(p.x,p.y,2,0,Math.PI*2);
-ctx.fill();
-});
-
-requestAnimationFrame(draw);
-}
-draw();
-
-// AI hand
-const hands = new Hands({
-locateFile: file =>
-`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-});
-
-hands.setOptions({
-maxNumHands:1,
-minDetectionConfidence:0.7,
-minTrackingConfidence:0.7
-});
-
-hands.onResults(results=>{
-if(results.multiHandLandmarks){
-let hand = results.multiHandLandmarks[0];
-let cx = hand[9].x;
-let cy = hand[9].y;
-
-hx = cx * canvas.width;
-hy = cy * canvas.height;
-}
-});
-
-const camera = new Camera(video,{
-onFrame: async ()=>{
-await hands.send({image: video});
-},
-width:640,
-height:480
-});
-camera.start();
 </script>
 
 </body>
